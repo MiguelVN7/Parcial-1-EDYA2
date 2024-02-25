@@ -1,10 +1,11 @@
+#Con este me dan 30 discrepancias pero ejecuta inmediatamente
+
 def separar_longitudes(longitudes):
     longitudes_separadas = longitudes.split(' ')
-    longitudes_separadas = [x for x in longitudes_separadas if x]  #La comprensión de lista [x for x in longitudes_separadas if x] elimina cualquier elemento vacío de la lista longitudes_separadas antes de convertirla a enteros. Esto debería evitar el error que estás experimentando.
+    longitudes_separadas = [x for x in longitudes_separadas if x]
     longitudes_separadas = list(map(int, longitudes_separadas))
-    longitudes_separadas.sort()
+    longitudes_separadas.sort(reverse=True)
     return longitudes_separadas
-
 
 def sumar_longitudes(longitudes_separadas):
     suma = 0
@@ -12,75 +13,74 @@ def sumar_longitudes(longitudes_separadas):
         suma += longitud
     return suma
 
-
-def descomponer_en_primos(suma):
-    lista_primos = []
-    for i in range(1, suma):
-        if (suma % i == 0):
-            lista_primos.append(i)
-    return lista_primos
-
+def encontrar_divisores(suma):
+    lista_divisores = []
+    for i in range(1, suma + 1):
+        if suma % i == 0:
+            lista_divisores.append(i)
+    return lista_divisores
 
 def encontrar_longitud_mayor(longitudes_separadas):
-    mayor = 0
-    for longitud in longitudes_separadas:
-        if (longitud > mayor):
-            mayor = longitud
+    mayor = max(longitudes_separadas)
     return mayor
 
+def seleccionar_divisores_validos(lista_divisores, mayor):
+    divisores_validos = []
+    for divisor in lista_divisores:
+        if (divisor >= mayor):
+            divisores_validos.append(divisor)
+    return divisores_validos
 
-def sumar_extremos(longitudes_separadas):
-    suma_extremos = []
-    n = len(longitudes_separadas)
-    for i in range((n + 1) // 2):
-        suma = longitudes_separadas[i] + longitudes_separadas[n - 1 - i]
-        suma_extremos.append(suma)
-    return suma_extremos
+def encontrar_longitud_palito(longitudes_separadas, divisores, suma_total):
+    def backtrack(objetivo, longitudes, usados, suma_actual):
+        if suma_actual == objetivo:
+            return True
+        if suma_actual > objetivo or all(usados):
+            return False
+        for i in range(len(longitudes)):
+            if not usados[i] and suma_actual + longitudes[i] <= objetivo:
+                usados[i] = True
+                if backtrack(objetivo, longitudes, usados, suma_actual + longitudes[i]):
+                    return True
+                usados[i] = False
+        return False
 
+    long_max = max(longitudes_separadas)
+    for divisor in sorted(divisores):
+        if divisor >= long_max and suma_total % divisor == 0:
+            usados = [False] * len(longitudes_separadas)
+            if backtrack(divisor, longitudes_separadas, usados, 0):
+                return divisor
+    return None
 
-def comparar_sumas_extremos(suma_extremos):
-    son_iguales = True
-    for i in range(len(suma_extremos) - 1):
-        if (suma_extremos[i] != suma_extremos[i + 1]):
-            son_iguales = False
-            break
-    return son_iguales
 
 
 
 
 
 def main():
-    print('Ingrese el número de partes de palitos y las longitudes de las partes separadas por un espacio, recuerde que es en dos lineas diferentes:\n')
+    print('Pegue la serie de datos, incluido el 0 al final, y presione Enter:\n')
+    entradas = []
     while True:
-        # Leer el número de partes de palitos
-        palitos_cortados = int(input())
-        if (palitos_cortados == 0):
-            break  # Salir del bucle si el número de partes es 0
+        entrada = input()
+        if entrada.strip() == '0':
+            entradas.append(entrada.strip())
+            break
+        entradas.extend(entrada.strip().split('\n'))
 
-        # Leer las longitudes de las partes de palitos
-        longitudes = input()
+    for i in range(0, len(entradas), 2):
+        palitos_cortados = int(entradas[i])
+        if palitos_cortados == 0:
+            break
+        longitudes = entradas[i + 1]
 
-        # Procesar y mostrar las longitudes separadas
         longitudes_separadas = separar_longitudes(longitudes)
-        print(longitudes_separadas)
-
         suma = sumar_longitudes(longitudes_separadas)
-        print(suma)
-
-        lista_primos = descomponer_en_primos(suma)
-        print(lista_primos)
-
+        lista_divisores = encontrar_divisores(suma)
         mayor = encontrar_longitud_mayor(longitudes_separadas)
-        print(mayor)
-
-        suma_extremos = sumar_extremos(longitudes_separadas)
-        print(suma_extremos)
-
-        son_iguales = comparar_sumas_extremos(suma_extremos)
-        print(son_iguales)
-
+        divisores_validos = seleccionar_divisores_validos(lista_divisores, mayor)
+        longitud_minima = encontrar_longitud_palito(longitudes_separadas, divisores_validos, suma)
+        print(longitud_minima)
 
 if __name__ == "__main__":
     main()
-
